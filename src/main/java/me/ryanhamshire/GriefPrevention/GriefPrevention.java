@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import com.griefprevention.events.PlayerTradeClaimBlocksEvent;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.ryanhamshire.GriefPrevention.DataStore.NoTransferException;
@@ -1877,6 +1878,9 @@ public class GriefPrevention extends JavaPlugin
 
                     //inform player
                     GriefPrevention.sendMessage(player, TextMode.Success, Messages.PurchaseConfirmation, economy.format(totalCost), String.valueOf(playerData.getRemainingClaimBlocks()));
+
+                    //send event
+                    Bukkit.getServer().getPluginManager().callEvent(new PlayerTradeClaimBlocksEvent(player, blockCount, totalCost, PlayerTradeClaimBlocksEvent.TradeType.BUY));
                 }
 
                 return true;
@@ -1953,6 +1957,9 @@ public class GriefPrevention extends JavaPlugin
 
                 //inform player
                 GriefPrevention.sendMessage(player, TextMode.Success, Messages.BlockSaleConfirmation, economyWrapper.getEconomy().format(totalValue), String.valueOf(playerData.getRemainingClaimBlocks()));
+
+                //send event
+                Bukkit.getServer().getPluginManager().callEvent(new PlayerTradeClaimBlocksEvent(player, blockCount, totalValue, PlayerTradeClaimBlocksEvent.TradeType.SELL));
             }
 
             return true;
