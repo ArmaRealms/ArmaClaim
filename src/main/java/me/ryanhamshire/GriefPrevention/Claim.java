@@ -90,7 +90,7 @@ public class Claim
     public Claim parent = null;
 
     // intended for subclaims - they inherit no permissions
-    private boolean inheritNothing = false;
+    private boolean inheritNothing = true;
 
     //children (subdivisions)
     //note subdivisions themselves never have children
@@ -258,7 +258,7 @@ public class Claim
 
     Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, Long id)
     {
-        this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
+        this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, true, id);
     }
 
     //produces a copy of a claim.
