@@ -1152,7 +1152,7 @@ class PlayerEventHandler implements Listener
             return;
 
         playerData.lastClaim = claim;
-        if (claim.checkPermission(player, ClaimPermission.Build, event) == null)
+        if (claim.checkPermission(player, ClaimPermission.Access, event) == null)
             return;
 
         event.setCancelled(true);
