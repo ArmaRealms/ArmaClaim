@@ -6,7 +6,7 @@ version: '${git.commit.id.describe}'
 api-version: '1.17'
 commands:
     abandonclaim:
-      description: Deleta uma claim.
+      description: Deletes a claim.
       usage: /<command>
       aliases: [unclaim, declaim, removeclaim, disclaim]
       permission: griefprevention.claims
@@ -252,43 +252,40 @@ permissions:
             griefprevention.unlockothersdrops: true
             griefprevention.seeclaimsize: true
     griefprevention.siegeimmune:
-        description: Makes a player immune to /Siege.
+        description: Makes a player immune to /siege.
         default: op
     griefprevention.givepet:
-        description: Grants permission to use /GivePet.
+        description: Grants permission to use /givepet.
         default: true
     griefprevention.siege:
-        description: Grants permission to use /Siege.
+        description: Grants permission to use /siege.
         default: true
     griefprevention.unlockdrops:
-        description: Grants permission to use /UnlockDrops.
+        description: Grants permission to use /unlockdrops.
         default: true
     griefprevention.unlockothersdrops:
-        description: Grants permission to use /UnlockDrops for other players.
+        description: Grants permission to use /unlockdrops for other players.
         default: op
     griefprevention.trapped:
-        description: Grants permission to use /Trapped.
+        description: Grants permission to use /trapped.
         default: true
     griefprevention.claimslistother:
-        description: Grants permission to use /ClaimsList to get another player's information.
+        description: Grants permission to use /claimslist to get another player's information.
         default: op
     griefprevention.restorenature:
-        description: Grants permission to use /RestoreNature.
+        description: Grants permission to use /restorenature.
         default: op
     griefprevention.transferclaim:
-        description: Grants permission to use /TransferClaim.
+        description: Grants permission to use /transferclaim.
         default: op
     griefprevention.ignoreclaims:
-        description: Grants permission to use /IgnoreClaims.
+        description: Grants permission to use /ignoreclaims.
         default: op
     griefprevention.adminclaims:
         description: Grants permission to create administrative claims.
         default: op
     griefprevention.deleteclaims:
         description: Grants permission to delete other players' claims.
-        default: op
-    griefprevention.deleteclaimsinworld:
-        description: Not used.  DeleteClaimsInWorld must be executed at the server console.
         default: op
     griefprevention.adjustclaimblocks:
         description: Grants permission to add or remove bonus blocks from a player's account.
@@ -306,22 +303,19 @@ permissions:
         description: Allows a player to see sign placements as chat messages.
         default: op
     griefprevention.restorenatureaggressive:
-        description: Grants access to /RestoreNatureAggressive and /RestoreNatureFill.
-        default: op
-    griefprevention.deathblow:
-        description: Grants access to /DeathBlow.
+        description: Grants access to /restorenatureaggressive and /restorenaturefill.
         default: op
     griefprevention.reload:
         description: Grants access to /gpreload.
         default: op
     griefprevention.softmute:
-        description: Grants access to /SoftMute.
+        description: Grants access to /softmute.
         default: op
     griefprevention.claims:
         description: Grants access to claim-related slash commands.
         default: true
     griefprevention.abandonallclaims:
-        description: Grants access to /AbandonAllClaims.
+        description: Grants access to /abandonallclaims.
         default: true
     griefprevention.buysellclaimblocks:
         description: Grants access to claim block buy/sell commands.
@@ -333,19 +327,19 @@ permissions:
         description: Allows a player to see claim size for other players claims when right clicking with investigation tool
         default: op
     griefprevention.gpblockinfo:
-        description: Grants access to /GPBlockInfo.
+        description: Grants access to /gpblockinfo.
         default: op
     griefprevention.overrideclaimcountlimit:
         description: Allows players to create more claims than the limit specified by the config.
         default: op
     griefprevention.separate:
-        description: Grants access to /Separate and /UnSeparate.
+        description: Grants access to /separate and /unseparate.
         default: op
     griefprevention.ignore:
-        description: Grants access to /Ignore, /Unignore, and /IgnoreList
+        description: Grants access to /ignore, /unignore, and /ignorelist
         default: true
     griefprevention.claimbook:
-        description: Grants access to /ClaimBook.
+        description: Grants access to /claimbook.
         default: op
     griefprevention.notignorable:
         description: Players with this permission can't be ignored.
