@@ -62,6 +62,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -217,6 +218,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_creaturesTrampleCrops;                    //whether or not non-player entities may trample crops
     public boolean config_rabbitsEatCrops;                          //whether or not rabbits may eat crops
     public boolean config_zombiesBreakDoors;                        //whether or not hard-mode zombies may break down wooden doors
+    public boolean config_mobProjectilesChangeBlocks;               //whether mob projectiles can change blocks (skeleton arrows lighting TNT or drowned tridents dropping pointed dripstone)
 
     public int config_ipLimit;                                      //how many players can share an IP address
 
@@ -656,6 +658,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_creaturesTrampleCrops = config.getBoolean("GriefPrevention.CreaturesTrampleCrops", false);
         this.config_rabbitsEatCrops = config.getBoolean("GriefPrevention.RabbitsEatCrops", true);
         this.config_zombiesBreakDoors = config.getBoolean("GriefPrevention.HardModeZombiesBreakDoors", false);
+        this.config_mobProjectilesChangeBlocks = config.getBoolean("GriefPrevention.MobProjectilesChangeBlocks", false);
         this.config_ban_useCommand = config.getBoolean("GriefPrevention.UseBanCommand", false);
         this.config_ban_commandFormat = config.getString("GriefPrevention.BanCommandPattern", "ban %name% %reason%");
 
@@ -914,6 +917,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.CreaturesTrampleCrops", this.config_creaturesTrampleCrops);
         outConfig.set("GriefPrevention.RabbitsEatCrops", this.config_rabbitsEatCrops);
         outConfig.set("GriefPrevention.HardModeZombiesBreakDoors", this.config_zombiesBreakDoors);
+        outConfig.set("GriefPrevention.MobProjectilesChangeBlocks", this.config_mobProjectilesChangeBlocks);
 
         outConfig.set("GriefPrevention.Database.URL", this.databaseUrl);
         outConfig.set("GriefPrevention.Database.UserName", this.databaseUserName);
@@ -3706,7 +3710,7 @@ public class GriefPrevention extends JavaPlugin
         else
         {
             BanList bans = Bukkit.getServer().getBanList(Type.NAME);
-            bans.addBan(player.getName(), reason, null, source);
+            bans.addBan(player.getName(), reason, (Date) null, source);
 
             //kick
             if (player.isOnline())
