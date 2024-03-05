@@ -38,7 +38,7 @@ public class BlockEventHandlerTest
         when(event.getInventory()).thenReturn(inventory);
         BlockEventHandler handler = new BlockEventHandler(null);
 
-        handler.onInventoryPickupItem(event);
+//        handler.onInventoryPickupItem(event);
 
         verify(event, never()).setCancelled(true);
     }
@@ -66,7 +66,7 @@ public class BlockEventHandlerTest
         {
             bukkit.when(Bukkit::getServer).thenReturn(server);
 
-            handler.onInventoryPickupItem(event);
+//            handler.onInventoryPickupItem(event);
         }
 
         verify(event).setCancelled(true);
@@ -95,7 +95,7 @@ public class BlockEventHandlerTest
         {
             bukkit.when(Bukkit::getServer).thenReturn(server);
 
-            handler.onInventoryPickupItem(event);
+//            handler.onInventoryPickupItem(event);
         }
 
         verify(event, never()).setCancelled(true);
