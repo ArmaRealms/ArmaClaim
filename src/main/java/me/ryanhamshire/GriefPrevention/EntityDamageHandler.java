@@ -148,13 +148,13 @@ public class EntityDamageHandler implements Listener
         if (event.getEntity() instanceof Mule && !instance.config_claims_protectDonkeys) return;
         if (event.getEntity() instanceof Llama && !instance.config_claims_protectLlamas) return;
         //protected death loot can't be destroyed, only picked up or despawned due to expiration
-        if (event.getEntityType() == EntityType.DROPPED_ITEM)
-        {
-            if (event.getEntity().hasMetadata("GP_ITEMOWNER"))
-            {
-                event.setCancelled(true);
-            }
-        }
+//        if (event.getEntityType() == EntityType.DROPPED_ITEM)
+//        {
+//            if (event.getEntity().hasMetadata("GP_ITEMOWNER"))
+//            {
+//                event.setCancelled(true);
+//            }
+//        }
 
         // Handle environmental damage to tamed animals that could easily be caused maliciously.
         if (handlePetDamageByEnvironment(event)) return;
@@ -216,13 +216,13 @@ public class EntityDamageHandler implements Listener
         if (event.getEntity() instanceof Mule && !instance.config_claims_protectDonkeys) return;
         if (event.getEntity() instanceof Llama && !instance.config_claims_protectLlamas) return;
         //protected death loot can't be destroyed, only picked up or despawned due to expiration
-        if (event.getEntityType() == EntityType.DROPPED_ITEM)
-        {
-            if (event.getEntity().hasMetadata("GP_ITEMOWNER"))
-            {
-                event.setCancelled(true);
-            }
-        }
+//        if (event.getEntityType() == EntityType.DROPPED_ITEM)
+//        {
+//            if (event.getEntity().hasMetadata("GP_ITEMOWNER"))
+//            {
+//                event.setCancelled(true);
+//            }
+//        }
 
         // Handle environmental damage to tamed animals that could easily be caused maliciously.
         if (handlePetDamageByEnvironment(event)) return;
