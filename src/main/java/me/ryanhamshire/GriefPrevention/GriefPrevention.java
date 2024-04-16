@@ -254,7 +254,7 @@ public class GriefPrevention extends JavaPlugin
         {
             GriefPrevention.instance.customLogger.AddEntry(entry, customLogType);
         }
-        if (!excludeFromServerLogs) log.info(entry);
+        if (!excludeFromServerLogs) Bukkit.getConsoleSender().sendMessage(entry);
     }
 
     public static synchronized void AddLogEntry(String entry, CustomLogEntryTypes customLogType)
@@ -2908,7 +2908,7 @@ public class GriefPrevention extends JavaPlugin
 
         if (player == null)
         {
-            Bukkit.getConsoleSender().sendMessage(message);
+            Bukkit.getConsoleSender().sendMessage(color + message);
             GriefPrevention.AddLogEntry(message, CustomLogEntryTypes.Debug, true);
         }
         else
