@@ -18,6 +18,10 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import com.griefprevention.protection.ProtectionHelper;
+import me.ryanhamshire.GriefPrevention.events.ProtectDeathDropsEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.ExplosionResult;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -31,6 +35,7 @@ import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Vehicle;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -80,14 +85,10 @@ public class EntityEventHandler implements Listener
     public void onEntityFormBlock(EntityBlockFormEvent event)
     {
         Entity entity = event.getEntity();
-        if (entity.getType() == EntityType.PLAYER)
+        if (entity instanceof Player player
+                && ProtectionHelper.checkPermission(player, event.getBlock().getLocation(), ClaimPermission.Build, event) != null)
         {
-            Player player = (Player) event.getEntity();
-            String noBuildReason = GriefPrevention.instance.allowBuild(player, event.getBlock().getLocation(), event.getNewState().getType());
-            if (noBuildReason != null)
-            {
-                event.setCancelled(true);
-            }
+            event.setCancelled(true);
         }
     }
 
@@ -139,15 +140,14 @@ public class EntityEventHandler implements Listener
         //don't allow crops to be trampled, except by a player with build permission
         else if (event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
         {
-            if (event.getEntityType() != EntityType.PLAYER)
+            if (!(event.getEntity() instanceof Player player))
             {
                 event.setCancelled(true);
             }
             else
             {
-                Player player = (Player) event.getEntity();
                 Block block = event.getBlock();
-                if (GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
+                if (ProtectionHelper.checkPermission(player, block.getLocation(), ClaimPermission.Build, event) != null)
                 {
                     event.setCancelled(true);
                 }
@@ -167,7 +167,7 @@ public class EntityEventHandler implements Listener
             if (driver instanceof Player player)
             {
                 Block block = event.getBlock();
-                if (GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
+                if (ProtectionHelper.checkPermission(player, block.getLocation(), ClaimPermission.Build, event) != null)
                 {
                     event.setCancelled(true);
                 }
@@ -318,7 +318,7 @@ public class EntityEventHandler implements Listener
         if (player != null)
         {
             Block block = event.getBlock();
-            if (GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
+            if (ProtectionHelper.checkPermission(player, block.getLocation(), ClaimPermission.Build, event) != null)
             {
                 event.setCancelled(true);
             }
@@ -370,23 +370,99 @@ public class EntityEventHandler implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityExplode(EntityExplodeEvent explodeEvent)
     {
-        this.handleExplosion(explodeEvent.getLocation(), explodeEvent.getEntity(), explodeEvent.blockList());
+        // If there aren't any affected blocks, there's nothing to do. Vanilla mob griefing rule causes this.
+        if (explodeEvent.blockList().isEmpty()) return;
+
+        // Explosion causes interactable blocks (levers, buttons, etc.) to change state.
+        if (explodeEvent.getExplosionResult() == ExplosionResult.TRIGGER_BLOCK)
+        {
+            handleExplodeInteract(explodeEvent.getLocation(), explodeEvent.getEntity(), explodeEvent.blockList(), explodeEvent);
+        }
+        // Explosion damages world.
+        else
+        {
+            handleExplosion(explodeEvent.getLocation(), explodeEvent.getEntity(), explodeEvent.blockList());
+        }
     }
 
     //when a block explodes...
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockExplode(BlockExplodeEvent explodeEvent)
     {
-        this.handleExplosion(explodeEvent.getBlock().getLocation(), null, explodeEvent.blockList());
+        // If there aren't any affected blocks, there's nothing to do. Vanilla mob griefing rule causes this.
+        if (explodeEvent.blockList().isEmpty()) return;
+
+        // Explosion causes interactable blocks (levers, buttons, etc.) to change state.
+        if (explodeEvent.getExplosionResult() == ExplosionResult.TRIGGER_BLOCK)
+        {
+            handleExplodeInteract(explodeEvent.getBlock().getLocation(), null, explodeEvent.blockList(), explodeEvent);
+        }
+        // Explosion damages world.
+        else
+        {
+            handleExplosion(explodeEvent.getBlock().getLocation(), null, explodeEvent.blockList());
+        }
     }
 
+    void handleExplodeInteract(@NotNull Location location, @Nullable Entity entity, @NotNull List<Block> blocks, @NotNull Event event)
+    {
+        World world = location.getWorld();
 
-    void handleExplosion(Location location, Entity entity, List<Block> blocks)
+        if (world == null || !GriefPrevention.instance.claimsEnabledForWorld(world)) return;
+
+        Player player = null;
+        PlayerData playerData = null;
+        ProjectileSource source = null;
+        if (entity instanceof Projectile projectile)
+        {
+            source = projectile.getShooter();
+            if (source instanceof Player)
+            {
+                player = (Player) source;
+                playerData = dataStore.getPlayerData(player.getUniqueId());
+            }
+        }
+
+        List<Block> removed = new ArrayList<>();
+        Claim cachedClaim = playerData != null ? playerData.lastClaim : null;
+
+        for (Block block : blocks)
+        {
+            // Always ignore air blocks.
+            if (block.getType().isAir()) continue;
+
+            Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, cachedClaim);
+
+            // Is it in a land claim?
+            if (claim == null) continue;
+
+            cachedClaim = claim;
+
+            if (player == null)
+            {
+                // If the source is not part of the claim, prevent interaction.
+                if (!isBlockSourceInClaim(source, claim))
+                    removed.add(block);
+                continue;
+            }
+
+            // If the player is not allowed to interact with blocks, prevent interaction.
+            if (claim.checkPermission(player, ClaimPermission.Access, event) != null)
+                removed.add(block);
+        }
+
+        if (playerData != null && cachedClaim != null)
+            playerData.lastClaim = cachedClaim;
+
+        blocks.removeAll(removed);
+    }
+
+    void handleExplosion(@NotNull Location location, @Nullable Entity entity, @NotNull List<Block> blocks)
     {
         //only applies to claims-enabled worlds
         World world = location.getWorld();
 
-        if (!GriefPrevention.instance.claimsEnabledForWorld(world)) return;
+        if (world == null || !GriefPrevention.instance.claimsEnabledForWorld(world)) return;
 
         //FEATURE: explosions don't destroy surface blocks by default
         boolean isCreeper = (entity != null && entity.getType() == EntityType.CREEPER);
@@ -398,8 +474,6 @@ public class EntityEventHandler implements Listener
         {
             for (int i = 0; i < blocks.size(); i++)
             {
-                Block block = blocks.get(i);
-
                 blocks.remove(i--);
             }
 
@@ -412,7 +486,7 @@ public class EntityEventHandler implements Listener
         for (Block block : blocks)
         {
             //always ignore air blocks
-            if (block.getType() == Material.AIR) continue;
+            if (block.getType().isAir()) continue;
 
             //is it in a land claim?
             Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, cachedClaim);
@@ -640,19 +714,18 @@ public class EntityEventHandler implements Listener
         Entity remover = entityEvent.getRemover();
 
         //again, making sure the breaker is a player
-        if (remover.getType() != EntityType.PLAYER)
+        if (!(remover instanceof Player playerRemover))
         {
             event.setCancelled(true);
             return;
         }
 
         //if the player doesn't have build permission, don't allow the breakage
-        Player playerRemover = (Player) entityEvent.getRemover();
-        String noBuildReason = GriefPrevention.instance.allowBuild(playerRemover, event.getEntity().getLocation(), Material.AIR);
+        Supplier<String> noBuildReason = ProtectionHelper.checkPermission(playerRemover, event.getEntity().getLocation(), ClaimPermission.Build, event);
         if (noBuildReason != null)
         {
             event.setCancelled(true);
-            GriefPrevention.sendMessage(playerRemover, TextMode.Err, noBuildReason);
+            GriefPrevention.sendMessage(playerRemover, TextMode.Err, noBuildReason.get());
         }
     }
 
@@ -662,15 +735,16 @@ public class EntityEventHandler implements Listener
     {
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
+        if (event.getPlayer() == null) return;
 
         //FEATURE: similar to above, placing a painting requires build permission in the claim
 
         //if the player doesn't have permission, don't allow the placement
-        String noBuildReason = GriefPrevention.instance.allowBuild(event.getPlayer(), event.getEntity().getLocation(), Material.PAINTING);
+        Supplier<String> noBuildReason = ProtectionHelper.checkPermission(event.getPlayer(), event.getEntity().getLocation(), ClaimPermission.Build, event);
         if (noBuildReason != null)
         {
             event.setCancelled(true);
-            GriefPrevention.sendMessage(event.getPlayer(), TextMode.Err, noBuildReason);
+            GriefPrevention.sendMessage(event.getPlayer(), TextMode.Err, noBuildReason.get());
             return;
         }
     }
