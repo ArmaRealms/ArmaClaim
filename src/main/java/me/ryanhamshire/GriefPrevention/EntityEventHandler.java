@@ -40,6 +40,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.CauldronLevelChangeEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
@@ -749,45 +750,92 @@ public class EntityEventHandler implements Listener
         }
     }
 
+    // @EventHandler
+    // public void onEntityPickUpItem(@NotNull EntityPickupItemEvent event)
+    // {
+    //     // Hostiles are allowed to equip death drops to preserve the challenge of item retrieval.
+    //     if (event.getEntity() instanceof Monster) return;
+
+    //     // FEATURE: Protect freshly-spawned players from PVP.
+    //     if (event.getEntity() instanceof Player player)
+    //     preventPvpSpawnCamp(event, player);
+    // }
+
     @EventHandler
-    public void onEntityPickUpItem(@NotNull EntityPickupItemEvent event)
+    public void onCauldron(@NotNull CauldronLevelChangeEvent event)
     {
-        // Hostiles are allowed to equip death drops to preserve the challenge of item retrieval.
-        if (event.getEntity() instanceof Monster) return;
+        //don't track in worlds where claims are not enabled
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
-        // FEATURE: Protect freshly-spawned players from PVP.
-        if (event.getEntity() instanceof Player player)
+        // Check if the entity is a player
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        if (!(entity instanceof Player player)) return;
+
+        //if the player doesn't have build permission, don't allow the interaction
+        Supplier<String> noBuildReason = ProtectionHelper.checkPermission(player, player.getLocation(), ClaimPermission.Build, event);
+        if (noBuildReason != null)
         {
-            preventPvpSpawnCamp(event, player);
+            event.setCancelled(true);
+            GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason.get());
         }
     }
 
-    private void preventPvpSpawnCamp(@NotNull EntityPickupItemEvent event, @Nullable Player player)
-    {
-        // This is specific to players in pvp worlds.
-        if (player == null || !instance.pvpRulesApply(player.getWorld())) return;
+    // private void protectLockedDrops(@NotNull EntityPickupItemEvent event, @Nullable Player player)
+    // {
+    //     Item item = event.getItem();
+    //     List<MetadataValue> data = item.getMetadata("GP_ITEMOWNER");
 
-        //if we're preventing spawn camping and the player was previously empty handed...
-        if (instance.config_pvp_protectFreshSpawns && (instance.getItemInHand(player, EquipmentSlot.HAND).getType() == Material.AIR))
-        {
-            //if that player is currently immune to pvp
-            PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            if (playerData.pvpImmune)
-            {
-                //if it's been less than 10 seconds since the last time he spawned, don't pick up the item
-                long now = Calendar.getInstance().getTimeInMillis();
-                long elapsedSinceLastSpawn = now - playerData.lastSpawn;
-                if (elapsedSinceLastSpawn < 10000)
-                {
-                    event.setCancelled(true);
-                    return;
-                }
+    //     // Ignore absent or invalid data.
+    //     if (data.isEmpty() || !(data.get(0).value() instanceof UUID ownerID)) return;
 
-                //otherwise take away his immunity. he may be armed now.  at least, he's worth killing for some loot
-                playerData.pvpImmune = false;
-                GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
-            }
-        }
-    }
+    //     // Get owner from stored UUID.
+    //     OfflinePlayer owner = instance.getServer().getOfflinePlayer(ownerID);
+
+    //     // Owner must be online and can pick up their own drops.
+    //     if (!owner.isOnline() || Objects.equals(player, owner)) return;
+
+    //     PlayerData playerData = this.dataStore.getPlayerData(ownerID);
+
+    //     // If drops are unlocked, allow pick up.
+    //     if (playerData.dropsAreUnlocked) return;
+
+    //     // Block pick up.
+    //     event.setCancelled(true);
+
+    //     // Non-players (dolphins, allays) do not need to generate prompts.
+    //     if (player == null)
+    //     {
+    //         preventPvpSpawnCamp(event, player);
+    //     }
+    // }
+
+    // private void preventPvpSpawnCamp(@NotNull EntityPickupItemEvent event, @Nullable Player player)
+    // {
+    //     // This is specific to players in pvp worlds.
+    //     if (player == null || !instance.pvpRulesApply(player.getWorld())) return;
+
+    //     //if we're preventing spawn camping and the player was previously empty handed...
+    //     if (instance.config_pvp_protectFreshSpawns && (instance.getItemInHand(player, EquipmentSlot.HAND).getType() == Material.AIR))
+    //     {
+    //         //if that player is currently immune to pvp
+    //         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+    //         if (playerData.pvpImmune)
+    //         {
+    //             //if it's been less than 10 seconds since the last time he spawned, don't pick up the item
+    //             long now = Calendar.getInstance().getTimeInMillis();
+    //             long elapsedSinceLastSpawn = now - playerData.lastSpawn;
+    //             if (elapsedSinceLastSpawn < 10000)
+    //             {
+    //                 event.setCancelled(true);
+    //                 return;
+    //             }
+
+    //             //otherwise take away his immunity. he may be armed now.  at least, he's worth killing for some loot
+    //             playerData.pvpImmune = false;
+    //             GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
+    //         }
+    //     }
+    // }
 
 }
