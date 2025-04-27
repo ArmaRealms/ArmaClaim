@@ -119,7 +119,7 @@ commands:
     usage: /<command>
     permission: griefprevention.ignoreclaims
 #  deletealladminclaims:
-#    description: Deletes all administrative claims.
+#    description: Deletes all administrative claims. Only usable at the server console.
 #    usage: /<command>
 #    permission: griefprevention.adminclaims
   adminclaimslist:
@@ -210,6 +210,9 @@ permissions:
       griefprevention.deleteclaimsinworld: true
       griefprevention.unlockothersdrops: true
       griefprevention.seeclaimsize: true
+  griefprevention.extendclaim.toolbypass:
+      description: Allows a player to extend a claim without a modification tool.
+      default: false
   griefprevention.unlockdrops:
     description: Grants permission to use /unlockdrops.
     default: true
