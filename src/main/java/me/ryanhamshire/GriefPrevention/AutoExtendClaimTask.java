@@ -98,9 +98,8 @@ public class AutoExtendClaimTask implements Runnable
         this.chunks = chunks;
         this.worldType = worldType;
         this.lowestExistingY = Math.min(lowestExistingY, claim.getLesserBoundaryCorner().getBlockY());
-        this.minY = Math.max(
-                Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld()).getMinHeight(),
-                GriefPrevention.instance.config_claims_maxDepth);
+        World world = Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld());
+        this.minY = Math.max(world.getMinHeight(), GriefPrevention.instance.getMinY(world));
     }
 
     @Override
@@ -346,7 +345,7 @@ public class AutoExtendClaimTask implements Runnable
             playerBlocks.add(Material.NETHER_BRICK);
             playerBlocks.add(Material.MAGMA_BLOCK);
             playerBlocks.add(Material.ANCIENT_DEBRIS);
-            playerBlocks.add(Material.CHAIN);
+            playerBlocks.add(Material.IRON_CHAIN);
             playerBlocks.add(Material.SHROOMLIGHT);
             playerBlocks.add(Material.NETHER_GOLD_ORE);
             playerBlocks.add(Material.NETHER_SPROUTS);
