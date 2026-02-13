@@ -3,10 +3,10 @@ name: Build and Upload
 on:
   push:
     branches:
-      - "update"
+      - "dev/*"
   pull_request:
     branches:
-      - "update"
+      - "dev/*"
   workflow_dispatch:
 
 jobs:
