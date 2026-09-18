@@ -1442,7 +1442,6 @@ public class GriefPrevention extends JavaPlugin
                     else
                     {
                         claim.dropPermission(idToDrop);
-                        claim.managers.remove(idToDrop);
                     }
 
                     //save changes
@@ -1469,7 +1468,7 @@ public class GriefPrevention extends JavaPlugin
             //otherwise, apply changes to only this claim
             else if (claim.checkPermission(player, ClaimPermission.Manage, null) != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoManageTrust, claim.getOwnerName());
                 return true;
             }
             else
@@ -1505,7 +1504,7 @@ public class GriefPrevention extends JavaPlugin
                     {
                         idToDrop = otherPlayer.getUniqueId().toString();
                     }
-                    boolean targetIsManager = claim.managers.contains(idToDrop);
+                    boolean targetIsManager = claim.getPermission(idToDrop) == ClaimPermission.Manage;
                     if (targetIsManager && claim.checkPermission(player, ClaimPermission.Edit, null) != null)  //only claim owners can untrust managers
                     {
                         GriefPrevention.sendMessage(player, TextMode.Err, Messages.ManagersDontUntrustManagers, claim.getOwnerName());
@@ -1563,8 +1562,8 @@ public class GriefPrevention extends JavaPlugin
             return true;
         }
 
-        //permissiontrust <player>
-        else if (cmd.getName().equalsIgnoreCase("permissiontrust") && player != null)
+        //managetrust <player>
+        else if (cmd.getName().equalsIgnoreCase("managetrust") && player != null)
         {
             //requires exactly one parameter, the other player's name
             if (args.length != 1) return false;
@@ -2096,7 +2095,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //rescue destination may be set by GPFlags or other plugin, ask to find out
-            SaveTrappedPlayerEvent event = new SaveTrappedPlayerEvent(claim);
+            SaveTrappedPlayerEvent event = new SaveTrappedPlayerEvent(player, claim);
             Bukkit.getPluginManager().callEvent(event);
 
             //if the player is in the nether or end, he's screwed (there's no way to programmatically find a safe place for him)
@@ -2457,7 +2456,7 @@ public class GriefPrevention extends JavaPlugin
             //check permission here
             if (claim.checkPermission(player, ClaimPermission.Manage, null) != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoManageTrust, claim.getOwnerName());
                 return;
             }
 
@@ -2495,26 +2494,16 @@ public class GriefPrevention extends JavaPlugin
         //apply changes
         for (Claim currentClaim : event.getClaims())
         {
-            if (permissionLevel == null)
-            {
-                if (!currentClaim.managers.contains(identifierToAdd))
-                {
-                    currentClaim.managers.add(identifierToAdd);
-                }
-            }
-            else
-            {
-                currentClaim.setPermission(identifierToAdd, permissionLevel);
-            }
+            currentClaim.setPermission(identifierToAdd, permissionLevel);
             this.dataStore.saveClaim(currentClaim);
         }
 
         //notify player
         if (recipientName.equals("public")) recipientName = this.dataStore.getMessage(Messages.CollectivePublic);
         String permissionDescription;
-        if (permissionLevel == null)
+        if (permissionLevel == ClaimPermission.Manage)
         {
-            permissionDescription = this.dataStore.getMessage(Messages.PermissionsPermission);
+            permissionDescription = this.dataStore.getMessage(Messages.ManagePermission);
         }
         else if (permissionLevel == ClaimPermission.Build)
         {
